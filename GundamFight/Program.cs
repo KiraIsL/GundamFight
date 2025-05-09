@@ -64,7 +64,9 @@ namespace MechFight
         /// <returns></returns>
         private static Mecha ChooseMech(Mecha mech, string pilot)
         {
-            return ChooseMechOrOpponent(mech, pilot, isOpponent: false);
+            mech =  ChooseMechOrOpponent(mech, pilot, isOpponent: false);
+            mech.Pilot = pilot;
+            return mech;
         }
 
         /// <summary>
@@ -242,8 +244,12 @@ namespace MechFight
                 _ => new BalancedStrategy()
             };
 
-            Console.WriteLine("\nBattle Result:");
-            BattleSimulator.Simulate(mech, enemy, strategy);
+            Console.WriteLine("\nBattle Begins:");
+            BattleResult result = BattleSimulator.Simulate(mech, enemy, strategy);
+
+            // Announce the winner
+            Console.WriteLine($"\nVictory: {result.Winner.Pilot}'s {result.Winner.Name} wins the battle in {result.Rounds} rounds!");
+
         }
 
         /// <summary>
