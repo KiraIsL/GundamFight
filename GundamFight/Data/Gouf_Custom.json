@@ -1,0 +1,28 @@
+{
+    "Name": "MS-07B-3 Gouf Custom",
+    "Pilot": "Norris Packard",
+    "Weapons": [
+        {
+            "Name": "Gatling Shield",
+            "AttackPower": 40,
+            "EnergyCost": 15
+        },
+        {
+            "Name": "Heat Sword",
+            "AttackPower": 35,
+            "EnergyCost": 10
+        }
+    ],
+    "SystemUpgrades": [
+        {
+            "Name": "Heavy Armor",
+            "DefenseBoost": 20,
+            "MobilityBoost": -5
+        },
+        {
+            "Name": "Reinforced Actuators",
+            "DefenseBoost": 5,
+            "MobilityBoost": 10
+        }
+    ]
+}

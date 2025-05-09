@@ -1,0 +1,27 @@
+{
+    "Name": "RX-78-2 Gundam",
+    "Weapons": [
+        {
+            "Name": "Beam Rifle",
+            "AttackPower": 75,
+            "EnergyCost": 25
+        },
+        {
+            "Name": "Beam Saber",
+            "AttackPower": 50,
+            "EnergyCost": 10
+        }
+    ],
+    "SystemUpgrades": [
+        {
+            "Name": "Anti-Beam Coating",
+            "DefenseBoost": 15,
+            "MobilityBoost": 0
+        },
+        {
+            "Name": "High-Performance Thrusters",
+            "DefenseBoost": 0,
+            "MobilityBoost": 20
+        }
+    ]
+}

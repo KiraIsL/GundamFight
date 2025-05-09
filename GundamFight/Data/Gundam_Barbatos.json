@@ -1,0 +1,28 @@
+{
+    "Name": "ASW-G-08 Gundam Barbatos Lupus Rex",
+    "Pilot": "Mikazuki Augus",
+    "Weapons": [
+        {
+            "Name": "Ultra Large Mace",
+            "AttackPower": 90,
+            "EnergyCost": 20
+        },
+        {
+            "Name": "Tail Blade",
+            "AttackPower": 30,
+            "EnergyCost": 10
+        }
+    ],
+    "SystemUpgrades": [
+        {
+            "Name": "Alaya-Vijnana System",
+            "DefenseBoost": 10,
+            "MobilityBoost": 20
+        },
+        {
+            "Name": "Reactive Armor",
+            "DefenseBoost": 25,
+            "MobilityBoost": -5
+        }
+    ]
+}

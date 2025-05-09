@@ -1,0 +1,18 @@
+{
+    "Name": "Zaku II",
+    "Pilot": "Dummy AI",
+    "Weapons": [
+        {
+            "Name": "Heat Hawk",
+            "AttackPower": 25,
+            "EnergyCost": 0
+        }
+    ],
+    "SystemUpgrades": [
+        {
+            "Name": "Armor Plating",
+            "DefenseBoost": 15,
+            "MobilityBoost": 0
+        }
+    ]
+}

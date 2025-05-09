@@ -1,0 +1,28 @@
+{
+    "Name": "XXXG-00W0 Wing Gundam Zero",
+    "Pilot": "Heero Yuy",
+    "Weapons": [
+        {
+            "Name": "Twin Buster Rifle",
+            "AttackPower": 100,
+            "EnergyCost": 40
+        },
+        {
+            "Name": "Beam Saber",
+            "AttackPower": 45,
+            "EnergyCost": 15
+        }
+    ],
+    "SystemUpgrades": [
+        {
+            "Name": "Zero System",
+            "DefenseBoost": 10,
+            "MobilityBoost": 25
+        },
+        {
+            "Name": "Flight Pack",
+            "DefenseBoost": 0,
+            "MobilityBoost": 30
+        }
+    ]
+}

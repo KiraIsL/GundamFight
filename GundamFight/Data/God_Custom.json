@@ -1,0 +1,21 @@
+{
+  "Name": "God",
+  "Pilot": "Enemy AI",
+  "Weapons": [
+    {
+      "Name": "1",
+      "AttackPower": 1,
+      "EnergyCost": 1
+    }
+  ],
+  "SystemUpgrades": [
+    {
+      "Name": "1",
+      "DefenseBoost": 1,
+      "MobilityBoost": 1
+    }
+  ],
+  "Attack": 1,
+  "Defense": 1,
+  "Mobility": 1
+}

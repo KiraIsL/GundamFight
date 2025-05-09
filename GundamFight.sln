@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GundamFight", "GundamFight\GundamFight.csproj", "{57F95FB3-BB77-4F4E-AA30-D01FA685F7F5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{57F95FB3-BB77-4F4E-AA30-D01FA685F7F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57F95FB3-BB77-4F4E-AA30-D01FA685F7F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57F95FB3-BB77-4F4E-AA30-D01FA685F7F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57F95FB3-BB77-4F4E-AA30-D01FA685F7F5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {88139080-8A76-416F-81EF-48A7B05E8FA9}
+	EndGlobalSection
+EndGlobal
