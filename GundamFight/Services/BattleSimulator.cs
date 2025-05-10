@@ -1,4 +1,5 @@
-﻿using Mech.Models;
+﻿using Microsoft.Extensions.Logging;
+using Mech.Models;
 
 namespace Simulation
 {

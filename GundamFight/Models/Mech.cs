@@ -55,11 +55,15 @@ namespace Mech.Models
         /// <param name="defenseDelta"></param>
         public void ModifyStats(int attackDelta, int defenseDelta)
         {
-            // e.g. bump the first weapon
-            if (Weapons.Count > 0)
-                Weapons[0].AttackPower += attackDelta;
+            // Add a temp weapon with the attackDelta
+            Weapons.Add(new Weapon
+            {
+                Name = "Buffed Weapon",
+                AttackPower = attackDelta,
+                EnergyCost = 0
+            });
 
-            // and maybe add a defensive upgrade
+            // Add Temp Shield system upgrade
             SystemUpgrades.Add(new SystemUpgrade
             {
                 Name = "Temp Shield",

@@ -1,15 +1,25 @@
 ﻿using System.Text.Json;
 using Mech.Models;
+using Microsoft.Extensions.Logging;
 using Simulation;
+using GundamFight.Services;
 
 namespace MechFight
 {
     class Program
     {
-        /// <summary>
-        /// Main entry point for the application.
-        /// </summary>
-        /// <param name="args"></param>
+        private static readonly ILogger<Program> Logger;
+
+        static Program()
+        {
+            using var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddDebug();   // Logs to the debug output
+                builder.AddFile("logs/mechfight.log"); // Log to a file
+            });
+            Logger = loggerFactory.CreateLogger<Program>();
+        }
+
         static void Main(string[] args)
         {
             bool keepRunning;
@@ -17,10 +27,13 @@ namespace MechFight
             {
                 try
                 {
+                    Logger.LogInformation("Application started.");
                     Console.WriteLine("=== Mech LOADOUT MANAGER ===");
                     Console.Write("Enter pilot name: ");
                     string? pilotInput = Console.ReadLine();
                     string pilot = pilotInput ?? "Amuro Ray";
+
+                    Logger.LogInformation("Pilot selected: {Pilot}", pilot);
 
                     Mecha mech = Mecha.CreateDefault(pilot);
 
@@ -46,6 +59,7 @@ namespace MechFight
                 }
                 catch (Exception ex)
                 {
+                    Logger.LogError(ex, "An error occurred during execution.");
                     Console.WriteLine($"An error occurred: {ex.Message}");
                 }
 
@@ -54,33 +68,37 @@ namespace MechFight
                 string? input = Console.ReadLine();
                 keepRunning = input?.Trim().ToLower() == "y";
             } while (keepRunning);
+
+            Logger.LogInformation("Application exited.");
         }
 
         /// <summary>
-        /// Choose a mech based on user input.
+        /// Choose a mech based on user input
         /// </summary>
         /// <param name="mech"></param>
         /// <param name="pilot"></param>
         /// <returns></returns>
         private static Mecha ChooseMech(Mecha mech, string pilot)
         {
-            mech =  ChooseMechOrOpponent(mech, pilot, isOpponent: false);
+            Logger.LogInformation("Choosing mech for pilot: {Pilot}", pilot);
+            mech = ChooseMechOrOpponent(mech, pilot, isOpponent: false);
             mech.Pilot = pilot;
             return mech;
         }
 
         /// <summary>
-        /// Choose an opponent mech based on user input.
+        /// Choose an opponent mech based on user input
         /// </summary>
         /// <param name="mech"></param>
         /// <returns></returns>
         private static Mecha ChooseOpponent(Mecha mech)
         {
+            Logger.LogInformation("Choosing opponent for mech: {MechName}", mech.Name);
             return ChooseMechOrOpponent(mech, "Enemy AI", isOpponent: true);
         }
 
         /// <summary>
-        /// Choose a mech or opponent based on user input.
+        /// Choose a mech or opponent based on user input
         /// </summary>
         /// <param name="mech"></param>
         /// <param name="pilot"></param>
@@ -88,6 +106,7 @@ namespace MechFight
         /// <returns></returns>
         private static Mecha ChooseMechOrOpponent(Mecha mech, string pilot, bool isOpponent)
         {
+            Logger.LogInformation("Loading mech options for {Pilot}. IsOpponent: {IsOpponent}", pilot, isOpponent);
             string dataPath = Path.Combine("..", "..", "..", "Data");
             string[] mechFiles = Directory.GetFiles(dataPath, "*.json");
 
@@ -116,6 +135,7 @@ namespace MechFight
 
             if (int.TryParse(input, out int selection))
             {
+                Logger.LogInformation("User selected option: {Selection}", selection);
                 return selection switch
                 {
                     1 when isOpponent => CreateMirrorMatch(mech),
@@ -126,12 +146,13 @@ namespace MechFight
                 };
             }
 
+            Logger.LogWarning("Invalid input. Defaulting to random mech.");
             Console.WriteLine("Invalid input. Defaulting to random mech.");
             return DefaultMechFallback(mechFiles);
         }
 
         /// <summary>
-        /// Fallback to a default mech if no valid selection is made.
+        /// Fallback to a default mech if no valid mech files are found
         /// </summary>
         /// <param name="mechFiles"></param>
         /// <returns></returns>
@@ -139,6 +160,7 @@ namespace MechFight
         {
             if (mechFiles == null || mechFiles.Length == 0)
             {
+                Logger.LogWarning("No mech files found. Falling back to a hardcoded default mech.");
                 Console.WriteLine("No mech files found. Falling back to a hardcoded default mech.");
                 return Mecha.CreateDefault("Fallback AI");
             }
@@ -146,11 +168,13 @@ namespace MechFight
             try
             {
                 string randomFile = mechFiles[new Random().Next(mechFiles.Length)];
+                Logger.LogInformation("Defaulting to random mech from file: {FileName}", Path.GetFileName(randomFile));
                 Console.WriteLine($"Defaulting to random mech from file: {Path.GetFileName(randomFile)}");
                 return LoadMechFromFile(randomFile);
             }
             catch (Exception ex)
             {
+                Logger.LogError(ex, "Failed to load a random mech.");
                 Console.WriteLine($"Failed to load a random mech. Error: {ex.Message}");
                 Console.WriteLine("Falling back to a hardcoded default mech.");
                 return Mecha.CreateDefault("Fallback AI");
@@ -441,40 +465,6 @@ namespace MechFight
         /// <param name="mech"></param>
         /// <param name="pilot"></param>
         /// <returns></returns>
-        public static Mecha LoadCustomMech(Mecha mech, string pilot)
-        {
-            Console.Write("Enter the filename of the saved custom mech (without extension): ");
-            string? input = Console.ReadLine();
 
-            if (!string.IsNullOrWhiteSpace(input))
-            {
-                input = input.Replace(" ", "_").ToLowerInvariant(); // normalize user input
-
-                string dataDir = Path.Combine("..", "..", "..", "Data");
-                string[] files = Directory.GetFiles(dataDir, "*.json");
-
-                string? matchedFile = files
-                    .FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).Equals(input, StringComparison.InvariantCultureIgnoreCase));
-
-                if (matchedFile != null)
-                {
-
-                    mech = LoadMechFromFile(matchedFile);
-                    Console.WriteLine("Custom mech loaded successfully.");
-                }
-                else
-                {
-                    Console.WriteLine("File not found (case-insensitive match). Loading default mech instead.");
-                    mech = ChooseDefaultMech(mech, pilot);
-                }
-            }
-            else
-            {
-                Console.WriteLine("Invalid input. Loading default mech.");
-                mech = ChooseDefaultMech(mech, pilot);
-            }
-
-            return mech;
-        }
     }
 }
