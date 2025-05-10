@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Mech.Models;
 
-namespace Mech.Models
+public class Weapon : IMechComponent
 {
-    public class Weapon
-    {
-        public required string Name { get; set; }
-        public int AttackPower { get; set; }
-        public int EnergyCost { get; set; } = 0;
+    public required string Name { get; set; }
+    public int AttackPower { get; set; }
+    public int EnergyCost { get; set; } = 0;
 
-        public override string ToString() => $"{Name} (+{AttackPower} ATK)";
-    }
+    public override string ToString() => $"{Name} (+{AttackPower} ATK)";
 }

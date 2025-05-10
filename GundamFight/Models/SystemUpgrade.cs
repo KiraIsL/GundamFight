@@ -1,22 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Mech.Models;
 
-namespace Mech.Models
+public class SystemUpgrade : IMechComponent
 {
-    public class SystemUpgrade
-    {
-        public required string Name { get; set; }
-        public int DefenseBoost { get; set; } = 0;
-        public int MobilityBoost { get; set; } = 0;
-        public int ArmourBoost { get; set; } = 0; // New property for Armour
-        public int EnergyBoost { get; set; } = 0; // New property for Energy
+    public required string Name { get; set; }
+    public int DefenseBoost { get; set; }
+    public int MobilityBoost { get; set; }
+    public int ArmourBoost { get; set; }
+    public int EnergyBoost { get; set; } = 0;
 
-        public override string ToString()
-        {
-            return $"{Name} (DEF +{DefenseBoost}, MOB +{MobilityBoost}), ARM +{ArmourBoost}, ENE +{EnergyBoost}";
-        }
-    }
+    public override string ToString() =>
+        $"{Name} (DEF +{DefenseBoost}, MOB +{MobilityBoost}, ARM +{ArmourBoost}, EN +{EnergyBoost})";
 }

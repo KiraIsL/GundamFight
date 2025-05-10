@@ -12,12 +12,17 @@ namespace MechFight
 
         static Program()
         {
-            using var loggerFactory = LoggerFactory.Create(builder =>
+            Logger = InitializeLogger();
+        }
+
+        private static ILogger<Program> InitializeLogger()
+        {
+            var loggerFactory = LoggerFactory.Create(builder =>
             {
-                builder.AddDebug();   // Logs to the debug output
-                builder.AddFile("logs/mechfight.log"); // Log to a file
+                builder.AddDebug();
+                builder.AddFile("logs/mechfight.log");
             });
-            Logger = loggerFactory.CreateLogger<Program>();
+            return loggerFactory.CreateLogger<Program>();
         }
 
         static void Main(string[] args)
@@ -29,9 +34,7 @@ namespace MechFight
                 {
                     Logger.LogInformation("Application started.");
                     Console.WriteLine("=== Mech LOADOUT MANAGER ===");
-                    Console.Write("Enter pilot name: ");
-                    string? pilotInput = Console.ReadLine();
-                    string pilot = pilotInput ?? "Amuro Ray";
+                    string pilot = GetUserInput("Enter pilot name: ", "Amuro Ray");
 
                     Logger.LogInformation("Pilot selected: {Pilot}", pilot);
 
@@ -41,9 +44,7 @@ namespace MechFight
 
                     DisplayLoadout(mech);
 
-                    Console.WriteLine("\nWould you like to simulate a battle? (y/n)");
-                    string? confirmBattle = Console.ReadLine();
-                    string confirmation = confirmBattle ?? "n";
+                    string confirmation = GetUserInput("\nWould you like to simulate a battle? (y/n)", "n");
                     if (confirmation.Equals("y", StringComparison.CurrentCultureIgnoreCase))
                     {
                         Console.WriteLine("Choose your opponent:");
@@ -130,8 +131,7 @@ namespace MechFight
                 Console.WriteLine($"{kvp.Key}. {kvp.Value}");
             }
 
-            Console.Write("Enter Selection: ");
-            string? input = Console.ReadLine();
+            string? input = GetUserInput("Enter Selection: ", "");
 
             if (int.TryParse(input, out int selection))
             {
@@ -169,7 +169,7 @@ namespace MechFight
             {
                 string randomFile = mechFiles[new Random().Next(mechFiles.Length)];
                 Logger.LogInformation("Defaulting to random mech from file: {FileName}", Path.GetFileName(randomFile));
-                Console.WriteLine($"Defaulting to random mech from file: {Path.GetFileName(randomFile)}");
+                Console.WriteLine($"Defaulting to random mech: {Path.GetFileNameWithoutExtension(randomFile).Replace("_", " ")}");
                 return LoadMechFromFile(randomFile);
             }
             catch (Exception ex)
@@ -179,49 +179,6 @@ namespace MechFight
                 Console.WriteLine("Falling back to a hardcoded default mech.");
                 return Mecha.CreateDefault("Fallback AI");
             }
-        }
-
-        /// <summary>
-        /// Load the default mech from a JSON file
-        /// </summary>
-        /// <param name="mech"></param>
-        /// <param name="pilot"></param>
-        /// <returns></returns>
-        private static Mecha ChooseDefaultMech(Mecha mech, string pilot)
-        {
-            try
-            {
-                string filePath = @"..\..\..\Data\RX_78_2.json";
-                Console.WriteLine("Looking for file at: " + Path.GetFullPath(filePath));
-                string json = File.ReadAllText(filePath);
-                mech = JsonSerializer.Deserialize<Mecha>(json) ?? new Mecha
-                {
-                    Name = "Default",
-                    Pilot = pilot,
-                    Weapons = [],
-                    SystemUpgrades = []
-                };
-
-                //Keep user input pilotName
-                mech.Pilot = pilot;
-
-                Console.WriteLine("\n--- Mech Loaded ---");
-                Console.WriteLine($"Name: {mech.Name}");
-                Console.WriteLine($"Pilot: {mech.Pilot}");
-                Console.WriteLine($"Attack: {mech.Attack}");
-                Console.WriteLine($"Defense: {mech.Defense}");
-                Console.WriteLine("Weapons:");
-                foreach (Weapon weapon in mech.Weapons)
-                {
-                    Console.WriteLine($"- {weapon}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to load MEch: {ex.Message}");
-            }
-
-            return mech;
         }
 
         /// <summary>
@@ -269,7 +226,8 @@ namespace MechFight
             };
 
             Console.WriteLine("\nBattle Begins:");
-            BattleResult result = BattleSimulator.Simulate(mech, enemy, strategy, Logger);
+            BattleSimulator simulator = new BattleSimulator(new Random(), Logger);
+            BattleResult result = simulator.Simulate(mech, enemy, strategy);
 
             // Announce the winner
             Console.WriteLine($"\nVictory: {result.Winner.Pilot}'s {result.Winner.Name} wins the battle in {result.Rounds} rounds!");
@@ -341,7 +299,7 @@ namespace MechFight
                     Logger.LogWarning("Invalid input for energy cost of weapon {Index}.", i + 1);
                 }
 
-                mech.Weapons.Add(new Weapon
+                mech.AddWeaponPublic(new Weapon
                 {
                     Name = weaponName,
                     AttackPower = attackPower,
@@ -396,7 +354,7 @@ namespace MechFight
                     Logger.LogWarning("Invalid input for mobility boost of system upgrade {Index}.", i + 1);
                 }
 
-                mech.SystemUpgrades.Add(new SystemUpgrade
+                mech.AddSystemUpgradePublic(new SystemUpgrade
                 {
                     Name = upgradeName,
                     DefenseBoost = defenseBoost,
@@ -429,7 +387,48 @@ namespace MechFight
             try
             {
                 string json = File.ReadAllText(filePath);
-                return JsonSerializer.Deserialize<Mecha>(json) ?? Mecha.CreateDefault("Dummy AI");
+
+                // Deserialize into a temporary object to extract weapons and system upgrades
+                var tempMech = JsonSerializer.Deserialize<TempMecha>(json);
+
+                if (tempMech == null)
+                {
+                    Console.WriteLine("Failed to deserialize Mecha. Returning default Mecha.");
+                    return Mecha.CreateDefault("Dummy AI");
+                }
+
+                // Create a new Mecha instance
+                var mech = new Mecha
+                {
+                    Name = tempMech.Name,
+                    Pilot = tempMech.Pilot
+                };
+
+                // Add weapons using AddWeapon
+                foreach (var weapon in tempMech.Weapons)
+                {
+                    mech.AddWeaponPublic(new Weapon
+                    {
+                        Name = weapon.Name,
+                        AttackPower = weapon.AttackPower,
+                        EnergyCost = weapon.EnergyCost
+                    });
+                }
+
+                // Add system upgrades using AddSystemUpgrade
+                foreach (var upgrade in tempMech.SystemUpgrades)
+                {
+                    mech.AddSystemUpgradePublic(new SystemUpgrade
+                    {
+                        Name = upgrade.Name,
+                        DefenseBoost = upgrade.DefenseBoost,
+                        MobilityBoost = upgrade.MobilityBoost,
+                        ArmourBoost = upgrade.ArmourBoost,
+                        EnergyBoost = upgrade.EnergyBoost
+                    });
+                }
+
+                return mech;
             }
             catch (Exception ex)
             {
@@ -445,13 +444,37 @@ namespace MechFight
         /// <returns></returns>
         public static Mecha CreateMirrorMatch(Mecha mech)
         {
-            return new Mecha
+            var mirrorMech = new Mecha
             {
                 Name = mech.Name + " (Enemy)",
-                Pilot = "Mirror Pilot",
-                Weapons = mech.Weapons.Select(w => new Weapon { Name = w.Name, AttackPower = w.AttackPower }).ToList(),
-                SystemUpgrades = mech.SystemUpgrades.Select(s => new SystemUpgrade { Name = s.Name, DefenseBoost = s.DefenseBoost, MobilityBoost = s.MobilityBoost }).ToList()
+                Pilot = "Mirror Pilot"
             };
+
+            // Add weapons using AddWeapon
+            foreach (var weapon in mech.Weapons)
+            {
+                mirrorMech.AddWeaponPublic(new Weapon
+                {
+                    Name = weapon.Name,
+                    AttackPower = weapon.AttackPower,
+                    EnergyCost = weapon.EnergyCost
+                });
+            }
+
+            // Add system upgrades using AddSystemUpgrade
+            foreach (var upgrade in mech.SystemUpgrades)
+            {
+                mirrorMech.AddSystemUpgradePublic(new SystemUpgrade
+                {
+                    Name = upgrade.Name,
+                    DefenseBoost = upgrade.DefenseBoost,
+                    MobilityBoost = upgrade.MobilityBoost,
+                    ArmourBoost = upgrade.ArmourBoost,
+                    EnergyBoost = upgrade.EnergyBoost
+                });
+            }
+
+            return mirrorMech;
         }
 
         /// <summary>
@@ -498,11 +521,17 @@ namespace MechFight
         }
 
         /// <summary>
-        /// Load a custom mech from a JSON file
+        /// Get user input with a prompt and a default value
         /// </summary>
-        /// <param name="mech"></param>
-        /// <param name="pilot"></param>
+        /// <param name="prompt"></param>
+        /// <param name="defaultValue"></param>
         /// <returns></returns>
+        private static string GetUserInput(string prompt, string defaultValue = "")
+        {
+            Console.Write(prompt);
+            string? input = Console.ReadLine();
+            return string.IsNullOrWhiteSpace(input) ? defaultValue : input;
+        }
 
     }
 }
