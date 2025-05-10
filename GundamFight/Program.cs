@@ -269,11 +269,10 @@ namespace MechFight
             };
 
             Console.WriteLine("\nBattle Begins:");
-            BattleResult result = BattleSimulator.Simulate(mech, enemy, strategy);
+            BattleResult result = BattleSimulator.Simulate(mech, enemy, strategy, Logger);
 
             // Announce the winner
             Console.WriteLine($"\nVictory: {result.Winner.Pilot}'s {result.Winner.Name} wins the battle in {result.Rounds} rounds!");
-
         }
 
         /// <summary>
@@ -283,8 +282,11 @@ namespace MechFight
         /// <returns></returns>
         public static Mecha CreateCustomMechFromInput(string pilot)
         {
+            Logger.LogInformation("Starting custom mech creation for pilot: {Pilot}", pilot);
+
             Console.Write("Enter the name of your Mech: ");
             string mechName = Console.ReadLine() ?? "Unnamed Mech";
+            Logger.LogInformation("Mech name entered: {MechName}", mechName);
 
             var mech = new Mecha
             {
@@ -298,8 +300,12 @@ namespace MechFight
             {
                 Console.Write("How many weapons does your Mech have? ");
                 if (int.TryParse(Console.ReadLine(), out weaponCount) && weaponCount >= 0)
+                {
+                    Logger.LogInformation("Number of weapons entered: {WeaponCount}", weaponCount);
                     break;
+                }
                 Console.WriteLine("Please enter a valid non-negative integer.");
+                Logger.LogWarning("Invalid input for weapon count.");
             }
             for (int i = 0; i < weaponCount; i++)
             {
@@ -307,14 +313,19 @@ namespace MechFight
 
                 Console.Write("  Name: ");
                 string weaponName = Console.ReadLine() ?? "Unnamed Weapon";
+                Logger.LogInformation("Weapon {Index} name entered: {WeaponName}", i + 1, weaponName);
 
                 int attackPower;
                 while (true)
                 {
                     Console.Write("  Attack Power: ");
                     if (int.TryParse(Console.ReadLine(), out attackPower))
+                    {
+                        Logger.LogInformation("Weapon {Index} attack power entered: {AttackPower}", i + 1, attackPower);
                         break;
+                    }
                     Console.WriteLine("  Please enter a valid integer for attack power.");
+                    Logger.LogWarning("Invalid input for attack power of weapon {Index}.", i + 1);
                 }
 
                 int energyCost;
@@ -322,8 +333,12 @@ namespace MechFight
                 {
                     Console.Write("  Energy Cost: ");
                     if (int.TryParse(Console.ReadLine(), out energyCost))
+                    {
+                        Logger.LogInformation("Weapon {Index} energy cost entered: {EnergyCost}", i + 1, energyCost);
                         break;
+                    }
                     Console.WriteLine("  Please enter a valid integer for energy cost.");
+                    Logger.LogWarning("Invalid input for energy cost of weapon {Index}.", i + 1);
                 }
 
                 mech.Weapons.Add(new Weapon
@@ -340,8 +355,12 @@ namespace MechFight
             {
                 Console.Write("How many system upgrades does your Mech have? ");
                 if (int.TryParse(Console.ReadLine(), out upgradeCount) && upgradeCount >= 0)
+                {
+                    Logger.LogInformation("Number of system upgrades entered: {UpgradeCount}", upgradeCount);
                     break;
+                }
                 Console.WriteLine("Please enter a valid non-negative integer.");
+                Logger.LogWarning("Invalid input for system upgrade count.");
             }
             for (int i = 0; i < upgradeCount; i++)
             {
@@ -349,14 +368,19 @@ namespace MechFight
 
                 Console.Write("  Name: ");
                 string upgradeName = Console.ReadLine() ?? "Unnamed Upgrade";
+                Logger.LogInformation("System upgrade {Index} name entered: {UpgradeName}", i + 1, upgradeName);
 
                 int defenseBoost;
                 while (true)
                 {
                     Console.Write("  Defense Boost: ");
                     if (int.TryParse(Console.ReadLine(), out defenseBoost))
+                    {
+                        Logger.LogInformation("System upgrade {Index} defense boost entered: {DefenseBoost}", i + 1, defenseBoost);
                         break;
+                    }
                     Console.WriteLine("  Please enter a valid integer for defense boost.");
+                    Logger.LogWarning("Invalid input for defense boost of system upgrade {Index}.", i + 1);
                 }
 
                 int mobilityBoost;
@@ -364,8 +388,12 @@ namespace MechFight
                 {
                     Console.Write("  Mobility Boost: ");
                     if (int.TryParse(Console.ReadLine(), out mobilityBoost))
+                    {
+                        Logger.LogInformation("System upgrade {Index} mobility boost entered: {MobilityBoost}", i + 1, mobilityBoost);
                         break;
+                    }
                     Console.WriteLine("  Please enter a valid integer for mobility boost.");
+                    Logger.LogWarning("Invalid input for mobility boost of system upgrade {Index}.", i + 1);
                 }
 
                 mech.SystemUpgrades.Add(new SystemUpgrade
@@ -377,9 +405,19 @@ namespace MechFight
             }
 
             // Save the custom mech to a JSON file
-            SaveCustomMech(mech);
+            try
+            {
+                SaveCustomMech(mech);
+                Logger.LogInformation("Custom mech successfully created and saved: {MechName}", mech.Name);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to save custom mech: {MechName}", mech.Name);
+            }
+
             return mech;
         }
+
 
         /// <summary>
         /// Load a mech from the JSON files

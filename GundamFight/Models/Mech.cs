@@ -6,26 +6,47 @@ using System.Threading.Tasks;
 
 namespace Mech.Models
 {
-    public class Mecha
+
+    public abstract class BaseMecha
     {
         public required string Name { get; set; }
         public string? Pilot { get; set; }
         public int Energy { get; set; } = 100;
         public int Armour { get; set; } = 500;
-        public List<Weapon> Weapons { get; set; } = new();
-        public List<SystemUpgrade> SystemUpgrades { get; set; } = new();
-
+        public List<Weapon> Weapons { get; set; } = [];
+        public List<SystemUpgrade> SystemUpgrades { get; set; } = [];
         public int Attack => Weapons.Sum(w => w.AttackPower);
         public int Defense => SystemUpgrades.Sum(u => u.DefenseBoost);
         public int Mobility => SystemUpgrades.Sum(u => u.MobilityBoost);
+        public int TotalArmour => Armour + SystemUpgrades.Sum(u => u.ArmourBoost);
+        public int TotalEnergy => Energy + SystemUpgrades.Sum(u => u.EnergyBoost);
 
-        /// <summary>
-        /// Displays the stats of the Mecha instance.
-        /// </summary>
-        public void DisplayStats()
+
+        public virtual void DisplayStats()
         {
             Console.WriteLine($"Gundam: {Name} | Pilot: {Pilot}");
+            Console.WriteLine($"Energy: {TotalEnergy} | Armour: {TotalArmour}");
             Console.WriteLine($"Attack: {Attack} | Defense: {Defense} | Mobility: {Mobility}");
+        }
+    }
+    public class Mecha : BaseMecha
+    {
+        /// <summary>
+        /// Displays the stats of the Mecha instance, including weapons and system upgrades.
+        /// </summary>
+        public override void DisplayStats()
+        {
+            base.DisplayStats();
+            Console.WriteLine("Weapons:");
+            foreach (var weapon in Weapons)
+            {
+                Console.WriteLine($"- {weapon}");
+            }
+            Console.WriteLine("System Upgrades:");
+            foreach (var upgrade in SystemUpgrades)
+            {
+                Console.WriteLine($"- {upgrade}");
+            }
         }
 
         /// <summary>
@@ -39,12 +60,8 @@ namespace Mech.Models
             {
                 Name = "Default",
                 Pilot = pilot,
-                Weapons = new List<Weapon>
-                {
-                },
-                SystemUpgrades = new List<SystemUpgrade>
-                {
-                }
+                Weapons = [],
+                SystemUpgrades = []
             };
         }
 
@@ -55,21 +72,41 @@ namespace Mech.Models
         /// <param name="defenseDelta"></param>
         public void ModifyStats(int attackDelta, int defenseDelta)
         {
-            // Add a temp weapon with the attackDelta
-            Weapons.Add(new Weapon
+            if (attackDelta < 0)
             {
-                Name = "Buffed Weapon",
-                AttackPower = attackDelta,
-                EnergyCost = 0
-            });
+                // Apply damage to weapons  
+                int damage = Math.Abs(attackDelta);
+                Console.WriteLine($"Applying {damage} damage to attack power.");
+                Weapons.ForEach(w => w.AttackPower = Math.Max(0, w.AttackPower - damage));
+            }
+            else
+            {
+                // Add a temp weapon with the attackDelta  
+                Weapons.Add(new Weapon
+                {
+                    Name = "Buffed Weapon",
+                    AttackPower = attackDelta,
+                    EnergyCost = 0
+                });
+            }
 
-            // Add Temp Shield system upgrade
-            SystemUpgrades.Add(new SystemUpgrade
+            if (defenseDelta < 0)
             {
-                Name = "Temp Shield",
-                DefenseBoost = defenseDelta,
-                MobilityBoost = 0
-            });
+                // Apply damage to defense  
+                int damage = Math.Abs(defenseDelta);
+                Console.WriteLine($"Applying {damage} damage to defense.");
+                Armour = Math.Max(0, Armour - damage); // Reduce Armour directly  
+            }
+            else
+            {
+                // Add Temp Shield system upgrade  
+                SystemUpgrades.Add(new SystemUpgrade
+                {
+                    Name = "Temp Shield",
+                    DefenseBoost = defenseDelta,
+                    MobilityBoost = 0
+                });
+            }
         }
     }
 }

@@ -14,41 +14,54 @@ namespace Simulation
         /// <param name="rng"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static BattleResult Simulate(Mecha g1, Mecha g2, IBattleStrategy strategy)
+        public static BattleResult Simulate(Mecha g1, Mecha g2, IBattleStrategy strategy, ILogger logger)
         {
             var rng = new Random();
 
             // Validate inputs
-            if (g1.Energy <= 0 || g2.Energy <= 0 || g1.Armour <= 0 || g2.Armour <= 0)
+            if (g1.TotalEnergy <= 0 || g2.TotalEnergy <= 0 || g1.TotalArmour <= 0 || g2.TotalArmour <= 0)
+            {
+                logger.LogError("Invalid Mecha stats: Both Mecha must have positive Energy and Armour.");
                 throw new ArgumentException("Mecha must have positive Energy and Armour to participate in a battle.");
+            }
+
+            logger.LogInformation("Battle started between {Mech1} and {Mech2}.", g1.Name, g2.Name);
 
             // Apply pre-battle adjustments
             strategy.Execute(g1, g2);
+            logger.LogInformation("Pre-battle adjustments applied using strategy: {Strategy}.", strategy.GetType().Name);
 
             int round = 1;
             Mecha? winner = null;
 
             while (winner == null)
             {
-                Console.WriteLine($"\n--- Round {round} ---");
+                logger.LogInformation("Starting round {Round}.", round);
 
                 // Process attacks
-                ProcessAttack(g1, g2, rng);
-                if (IsDefeated(g2)) winner = g1;
-
-                if (winner == null)
+                ProcessAttack(g1, g2, rng, logger);
+                if (IsDefeated(g2))
                 {
-                    ProcessAttack(g2, g1, rng);
-                    if (IsDefeated(g1)) winner = g2;
+                    winner = g1;
+                    break;
+                }
+
+                ProcessAttack(g2, g1, rng, logger);
+                if (IsDefeated(g1))
+                {
+                    winner = g2;
+                    break;
                 }
 
                 round++;
             }
 
+            logger.LogInformation("Battle ended after {Rounds} rounds. Winner: {Winner} (Pilot: {Pilot}).", round, winner.Name, winner.Pilot);
+
             return new BattleResult
             {
                 Winner = winner,
-                Rounds = round - 1
+                Rounds = round
             };
         }
 
@@ -58,14 +71,17 @@ namespace Simulation
         /// <param name="attacker"></param>
         /// <param name="defender"></param>
         /// <param name="rng"></param>
-        private static void ProcessAttack(Mecha attacker, Mecha defender, Random rng)
+        private static void ProcessAttack(Mecha attacker, Mecha defender, Random rng, ILogger logger)
         {
-            int attack = CalculateAttack(attacker, rng, attacker.Energy);
+            int attack = CalculateAttack(attacker, rng, attacker.TotalEnergy);
             int defense = CalculateDefense(defender, rng);
             int damage = Math.Max(0, attack - defense);
 
+            logger.LogInformation("{Attacker} attacks {Defender} for {Damage} damage!", attacker.Name, defender.Name, damage);
             Console.WriteLine($"{attacker.Name} attacks {defender.Name} for {damage} damage!");
-            defender.Armour -= damage;
+
+            // Adjusting the defender's armor using a method instead of direct assignment
+            defender.ModifyStats(0, -damage);
         }
 
         /// <summary>
@@ -75,7 +91,7 @@ namespace Simulation
         /// <returns></returns>
         private static bool IsDefeated(Mecha mech)
         {
-            return mech.Armour <= 0 || mech.Energy <= 0;
+            return mech.TotalArmour <= 0 || mech.TotalEnergy <= 0;
         }
 
         /// <summary>
