@@ -1,0 +1,27 @@
+{
+  "Name": "Test Mech",
+  "Pilot": "Karnak",
+  "Energy": 100,
+  "Armour": 500,
+  "Weapons": [
+    {
+      "Name": "Test gun",
+      "AttackPower": 1,
+      "EnergyCost": 1
+    }
+  ],
+  "SystemUpgrades": [
+    {
+      "Name": "Test Battery",
+      "DefenseBoost": 0,
+      "MobilityBoost": 0,
+      "ArmourBoost": 0,
+      "EnergyBoost": 1000
+    }
+  ],
+  "Attack": 1,
+  "Defense": 0,
+  "Mobility": 0,
+  "TotalArmour": 500,
+  "TotalEnergy": 1100
+}

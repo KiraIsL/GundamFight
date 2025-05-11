@@ -354,11 +354,39 @@ namespace MechFight
                     Logger.LogWarning("Invalid input for mobility boost of system upgrade {Index}.", i + 1);
                 }
 
+                int armourBoost;
+                while (true)
+                {
+                    Console.Write("  Armour Boost: ");
+                    if (int.TryParse(Console.ReadLine(), out armourBoost))
+                    {
+                        Logger.LogInformation("System upgrade {Index} armour boost entered: {armourBoost}", i + 1, armourBoost);
+                        break;
+                    }
+                    Console.WriteLine("  Please enter a valid integer for armour boost.");
+                    Logger.LogWarning("Invalid input for armour boost of system upgrade {Index}.", i + 1);
+                }
+
+                int energyBoost;
+                while (true)
+                {
+                    Console.Write("  Energy Boost: ");
+                    if (int.TryParse(Console.ReadLine(), out energyBoost))
+                    {
+                        Logger.LogInformation("System upgrade {Index} energy boost entered: {energyBoost}", i + 1, energyBoost);
+                        break;
+                    }
+                    Console.WriteLine("  Please enter a valid integer for energy boost.");
+                    Logger.LogWarning("Invalid input for energy boost of system upgrade {Index}.", i + 1);
+                }
+
                 mech.AddSystemUpgradePublic(new SystemUpgrade
                 {
                     Name = upgradeName,
                     DefenseBoost = defenseBoost,
-                    MobilityBoost = mobilityBoost
+                    MobilityBoost = mobilityBoost,
+                    ArmourBoost = armourBoost,
+                    EnergyBoost = energyBoost
                 });
             }
 
@@ -505,6 +533,15 @@ namespace MechFight
         /// <param name="mech"></param>
         public static void SaveCustomMech(Mecha mech)
         {
+            // Ask the user for confirmation
+            string input = GetUserInput($"Do you want to save your custom Mech '{mech.Name}'? (y/n)", "n");
+
+            if (input.Trim().ToLower() != "y")
+            {
+                Console.WriteLine("Mech was not saved.");
+                return; // Exit without saving
+            }
+
             string safeFileName = mech.Name.Replace(" ", "_").Replace("/", "_");
             string path = $@"..\..\..\Data\{safeFileName}.json";
 

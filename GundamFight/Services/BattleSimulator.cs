@@ -21,37 +21,68 @@ namespace Simulation
         /// <param name="g2"></param>
         /// <param name="strategy"></param>
         /// <returns></returns>
-        public BattleResult Simulate(Mecha g1, Mecha g2, IBattleStrategy strategy)
+public BattleResult Simulate(Mecha g1, Mecha g2, IBattleStrategy strategy)
+{
+    try
+    {
+        // Validate Mecha
+        ValidateMecha(g1, g2);
+    }
+    catch (ArgumentException ex)
+    {
+        _logger.LogError(ex, "Battle validation failed: {Message}", ex.Message);
+
+        // Inform the user and return a result indicating failure
+        Console.WriteLine("Battle cannot proceed: " + ex.Message);
+        return new BattleResult
         {
-            ValidateMecha(g1, g2);
+            Winner = null, // No winner since the battle didn't happen
+            Rounds = 0,
+            IsDraw = false
+        };
+    }
 
-            _logger.LogInformation("Battle started between {Mech1} and {Mech2}.", g1.Name, g2.Name);
+    _logger.LogInformation("Battle started between {Mech1} and {Mech2}.", g1.Name, g2.Name);
 
-            strategy.Execute(g1, g2);
-            _logger.LogInformation("Pre-battle adjustments applied using strategy: {Strategy}.", strategy.GetType().Name);
+    strategy.Execute(g1, g2);
+    _logger.LogInformation("Pre-battle adjustments applied using strategy: {Strategy}.", strategy.GetType().Name);
 
-            int round = 1;
-            Mecha? winner = null;
+    int round = 1;
+    Mecha? winner = null;
 
-            while (winner == null)
-            {
-                _logger.LogInformation("Starting round {Round}.", round);
+    while (winner == null)
+    {
+        _logger.LogInformation("Starting round {Round}.", round);
 
-                winner = ProcessRound(g1, g2);
-                if (winner == null)
-                {
-                    round++;
-                }
-            }
+        winner = ProcessRound(g1, g2);
 
-            _logger.LogInformation("Battle ended after {Rounds} rounds. Winner: {Winner} (Pilot: {Pilot}).", round, winner.Name, winner.Pilot);
-
+        // Check for a draw
+        if (winner == null && IsDefeated(g1) && IsDefeated(g2))
+        {
+            _logger.LogInformation("The battle ends in a draw after {Rounds} rounds.", round);
             return new BattleResult
             {
-                Winner = winner,
-                Rounds = round
+                Winner = null,
+                Rounds = round,
+                IsDraw = true
             };
         }
+
+        if (winner == null)
+        {
+            round++;
+        }
+    }
+
+    _logger.LogInformation("Battle ended after {Rounds} rounds. Winner: {Winner} (Pilot: {Pilot}).", round, winner.Name, winner.Pilot);
+
+    return new BattleResult
+    {
+        Winner = winner,
+        Rounds = round,
+        IsDraw = false
+    };
+}
 
         /// <summary>
         /// Validates the Mecha instances to ensure they have positive Energy and Armour.
@@ -77,12 +108,20 @@ namespace Simulation
         private Mecha? ProcessRound(Mecha g1, Mecha g2)
         {
             ProcessAttack(g1, g2);
-            if (IsDefeated(g2)) return g1;
-
             ProcessAttack(g2, g1);
+
+            // Check if both Mecha are defeated
+            if (IsDefeated(g1) && IsDefeated(g2))
+            {
+                _logger.LogInformation("Both Mecha are defeated. The battle ends in a draw.");
+                return null; // Indicate a draw
+            }
+
+            // Check if only one Mecha is defeated
+            if (IsDefeated(g2)) return g1;
             if (IsDefeated(g1)) return g2;
 
-            return null;
+            return null; // No winner yet, continue to the next round
         }
 
         /// <summary>
@@ -152,7 +191,8 @@ namespace Simulation
     /// </summary>
     public class BattleResult
     {
-        public required Mecha Winner { get; set; }
+        public Mecha? Winner { get; set; } // Nullable to handle no winner
         public int Rounds { get; set; }
+        public bool IsDraw { get; set; } = false; // Indicates if the battle ended in a draw
     }
 }
